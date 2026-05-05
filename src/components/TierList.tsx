@@ -112,15 +112,20 @@ export default function TierList() {
     }
   };
 
-  const updateState = (newState: AppState) => {
-    setState(newState);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-    if (user) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => {
-        saveToCloud(newState);
-      }, 2000);
-    }
+  const updateState = (newStateOrUpdater: AppState | ((prev: AppState | null) => AppState | null)) => {
+    setState((prev) => {
+      const newState = typeof newStateOrUpdater === "function" ? newStateOrUpdater(prev) : newStateOrUpdater;
+      if (newState) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+        if (user) {
+          if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = setTimeout(() => {
+            saveToCloud(newState);
+          }, 2000);
+        }
+      }
+      return newState;
+    });
   };
 
   const initializeDefault = () => {
@@ -132,12 +137,13 @@ export default function TierList() {
   const activeList = state?.lists.find((l) => l.id === state.activeListId) || null;
 
   const updateActiveList = (updates: Partial<TierListData>) => {
-    if (!state || !activeList) return;
-    const newState = {
-      ...state,
-      lists: state.lists.map((l) => (l.id === state.activeListId ? { ...l, ...updates } : l)),
-    };
-    updateState(newState);
+    updateState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        lists: prev.lists.map((l) => (l.id === prev.activeListId ? { ...l, ...updates } : l)),
+      };
+    });
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -170,12 +176,23 @@ export default function TierList() {
   };
 
   const addItem = (url: string) => {
-    if (!activeList) return;
     const id = uuidv4();
     const newItem: Item = { id, url };
-    updateActiveList({
-      items: { ...activeList.items, [id]: newItem },
-      unrankedItemIds: [id, ...activeList.unrankedItemIds],
+
+    updateState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        lists: prev.lists.map((l) =>
+          l.id === prev.activeListId
+            ? {
+                ...l,
+                items: { ...l.items, [id]: newItem },
+                unrankedItemIds: [id, ...l.unrankedItemIds],
+              }
+            : l
+        ),
+      };
     });
   };
 
