@@ -208,38 +208,55 @@ export default function TierList() {
         throw new Error("Cloudinary configuration missing in .env.local");
       }
 
-      // Her dosyayı sırayla yükle
+      const uploadedItems: { id: string; url: string }[] = [];
+
+      // Önce tüm dosyaları yükle ve URL'leri topla
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", uploadPreset);
 
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await response.json();
         if (data.secure_url) {
-          addItem(data.secure_url);
+          uploadedItems.push({ id: uuidv4(), url: data.secure_url });
         }
+      }
+
+      // Tüm yüklemeler bittiyse tek seferde state'e ekle
+      if (uploadedItems.length > 0) {
+        updateState((prev) => {
+          if (!prev) return null;
+          
+          const newItemsMap: Record<string, Item> = {};
+          const newItemIds: string[] = [];
+          
+          uploadedItems.forEach(item => {
+            newItemsMap[item.id] = item;
+            newItemIds.unshift(item.id); // Başa ekle
+          });
+
+          return {
+            ...prev,
+            lists: prev.lists.map((l) =>
+              l.id === prev.activeListId
+                ? {
+                    ...l,
+                    items: { ...l.items, ...newItemsMap },
+                    unrankedItemIds: [...newItemIds, ...l.unrankedItemIds],
+                  }
+                : l
+            ),
+          };
+        });
       }
     } catch (e) {
       console.error("Cloudinary upload failed", e);
-      // Fallback: Yerel yükleme (base64)
-      for (const file of files) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const result = event.target?.result;
-          if (typeof result === "string") {
-            addItem(result);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+      // Hata durumunda (isteğe bağlı) kullanıcıyı bilgilendir
     } finally {
       setSyncing(false);
     }
