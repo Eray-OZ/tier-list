@@ -179,7 +179,7 @@ export default function TierList() {
     });
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFilesUpload = async (files: File[]) => {
     if (!activeList) return;
 
     setSyncing(true);
@@ -191,35 +191,38 @@ export default function TierList() {
         throw new Error("Cloudinary configuration missing in .env.local");
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
+      // Her dosyayı sırayla yükle
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", uploadPreset);
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+        if (data.secure_url) {
+          addItem(data.secure_url);
         }
-      );
-
-      const data = await response.json();
-      if (data.secure_url) {
-        addItem(data.secure_url);
-      } else {
-        throw new Error("Upload failed");
       }
     } catch (e) {
       console.error("Cloudinary upload failed", e);
-      // Fallback to local base64 if upload fails or not configured
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result;
-        if (typeof result === "string") {
-          addItem(result);
-        }
-      };
-      reader.readAsDataURL(file);
+      // Fallback: Yerel yükleme (base64)
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = event.target?.result;
+          if (typeof result === "string") {
+            addItem(result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     } finally {
       setSyncing(false);
     }
@@ -385,7 +388,7 @@ export default function TierList() {
 
       <Toolbar
         onAddItem={addItem}
-        onAddFile={handleFileUpload}
+        onAddFiles={handleFilesUpload}
         onAddRow={addRow}
         onReset={() => {
           if (confirm("Are you sure you want to reset this list?")) {

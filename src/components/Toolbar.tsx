@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
   onAddItem: (url: string) => void;
-  onAddFile: (file: File) => void;
+  onAddFiles: (files: File[]) => void;
   onAddRow: () => void;
   onReset: () => void;
   onExport: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddFile, onAddRow, onReset, onExport }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddFiles, onAddRow, onReset, onExport }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
 
@@ -26,9 +26,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddFile, onAddRow
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onAddFile(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      onAddFiles(Array.from(files));
     }
   };
 
@@ -39,8 +39,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddFile, onAddRow
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md cursor-pointer transition-colors text-sm font-medium">
             <ImageIcon size={18} />
-            <span>Upload Image</span>
-            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+            <span>Upload Images</span>
+            <input type="file" className="hidden" accept="image/*" multiple onChange={handleFileUpload} />
           </label>
 
           <button
