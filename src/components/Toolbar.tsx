@@ -6,12 +6,13 @@ import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
   onAddItem: (url: string) => void;
+  onAddFile: (file: File) => void;
   onAddRow: () => void;
   onReset: () => void;
   onExport: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddRow, onReset, onExport }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddFile, onAddRow, onReset, onExport }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
 
@@ -27,14 +28,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAddItem, onAddRow, onReset, 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result;
-        if (typeof result === "string") {
-          onAddItem(result);
-        }
-      };
-      reader.readAsDataURL(file);
+      onAddFile(file);
     }
   };
 
