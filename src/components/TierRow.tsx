@@ -12,9 +12,10 @@ interface TierRowProps {
   items: Item[];
   onEdit: (tierId: string) => void;
   onDelete: (tierId: string) => void;
+  onDeleteItem: (itemId: string, containerId: string) => void;
 }
 
-export const TierRow: React.FC<TierRowProps> = ({ tier, items, onEdit, onDelete }) => {
+export const TierRow: React.FC<TierRowProps> = ({ tier, items, onEdit, onDelete, onDeleteItem }) => {
   return (
     <div className="flex min-h-[80px] md:min-h-[100px] border-b border-white/5 last:border-b-0 group">
       {/* Tier Label */}
@@ -37,7 +38,13 @@ export const TierRow: React.FC<TierRowProps> = ({ tier, items, onEdit, onDelete 
             )}
           >
             {items.map((item, index) => (
-              <TierItem key={item.id} id={item.id} url={item.url} index={index} />
+              <TierItem
+                key={item.id}
+                id={item.id}
+                url={item.url}
+                index={index}
+                onDelete={(itemId) => onDeleteItem(itemId, tier.id)}
+              />
             ))}
             {provided.placeholder}
           </div>

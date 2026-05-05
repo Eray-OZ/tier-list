@@ -241,6 +241,30 @@ export default function TierList() {
     });
   };
 
+  const deleteItem = (itemId: string, containerId: string) => {
+    if (!activeList) return;
+    const newList = { ...activeList };
+
+    // Remove from container
+    if (containerId === "unranked") {
+      newList.unrankedItemIds = newList.unrankedItemIds.filter((id) => id !== itemId);
+    } else {
+      const tierIndex = newList.tiers.findIndex((t) => t.id === containerId);
+      if (tierIndex !== -1) {
+        const tier = { ...newList.tiers[tierIndex] };
+        tier.itemIds = tier.itemIds.filter((id) => id !== itemId);
+        newList.tiers[tierIndex] = tier;
+      }
+    }
+
+    // Also remove from items dictionary
+    const newItems = { ...newList.items };
+    delete newItems[itemId];
+    newList.items = newItems;
+
+    updateActiveList(newList);
+  };
+
   const updateRow = (id: string, label: string, color: string) => {
     if (!activeList) return;
     updateActiveList({
@@ -348,11 +372,15 @@ export default function TierList() {
                 items={tier.itemIds.map((id) => activeList.items[id]).filter(Boolean)}
                 onEdit={setEditingTierId}
                 onDelete={deleteRow}
+                onDeleteItem={deleteItem}
               />
             ))}
           </div>
         </div>
-        <UnrankedArea items={activeList.unrankedItemIds.map((id) => activeList.items[id]).filter(Boolean)} />
+        <UnrankedArea
+          items={activeList.unrankedItemIds.map((id) => activeList.items[id]).filter(Boolean)}
+          onDeleteItem={deleteItem}
+        />
       </DragDropContext>
 
       <Toolbar

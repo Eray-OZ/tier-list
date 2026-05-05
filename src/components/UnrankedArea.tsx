@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface UnrankedAreaProps {
   items: Item[];
+  onDeleteItem: (itemId: string, containerId: string) => void;
 }
 
-export const UnrankedArea: React.FC<UnrankedAreaProps> = ({ items }) => {
+export const UnrankedArea: React.FC<UnrankedAreaProps> = ({ items, onDeleteItem }) => {
   return (
     <div className="mt-8 premium-card rounded-lg overflow-hidden">
       <div className="bg-white/5 px-4 py-2 border-b border-white/10">
@@ -27,7 +28,13 @@ export const UnrankedArea: React.FC<UnrankedAreaProps> = ({ items }) => {
             )}
           >
             {items.map((item, index) => (
-              <TierItem key={item.id} id={item.id} url={item.url} index={index} />
+              <TierItem
+                key={item.id}
+                id={item.id}
+                url={item.url}
+                index={index}
+                onDelete={(itemId) => onDeleteItem(itemId, "unranked")}
+              />
             ))}
             {provided.placeholder}
             {items.length === 0 && !snapshot.isDraggingOver && (
