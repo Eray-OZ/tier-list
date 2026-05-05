@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Modern Tier List Maker",
+  title: "Tier List Maker",
   description: "Create and share your own tier lists with ease. Responsive, dark mode, and exportable.",
 };
 

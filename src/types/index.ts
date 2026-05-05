@@ -11,7 +11,14 @@ export interface Tier {
 }
 
 export interface TierListData {
+  id: string;
+  name: string;
   tiers: Tier[];
   items: Record<string, Item>;
   unrankedItemIds: string[];
+}
+
+export interface AppState {
+  lists: TierListData[];
+  activeListId: string;
 }
